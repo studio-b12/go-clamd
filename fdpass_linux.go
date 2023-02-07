@@ -1,6 +1,7 @@
 package clamd
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -23,7 +24,10 @@ func (c *Clamd) ScanFileFdpass(file *os.File) (chan *ScanResult, error) {
 	command := fmt.Sprintf("FILDES")
 	conn.sendCommand(command)
 
-	unixConn := conn.Conn.(*net.UnixConn)
+	unixConn, ok := conn.Conn.(*net.UnixConn)
+	if !ok {
+		return nil, errors.New("fpass only supported by unix sockets")
+	}
 	socketFile, err := unixConn.File()
 	if err != nil {
 		return nil, err
